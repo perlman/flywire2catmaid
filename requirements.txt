@@ -2,3 +2,4 @@ python-catmaid
 navis
 caveclient
 sea-serpent
+h5py
