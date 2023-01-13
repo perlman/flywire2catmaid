@@ -44,8 +44,6 @@ def main():
     work_fd = open(args.workfile, 'a')
 
 
-
-    count = 5
     for neuron in neurons.neuron_iter():
         # Skip if needed?
         if neuron.neuron_id in processed:
@@ -56,13 +54,11 @@ def main():
         neuron.tree_neuron.annotations = []
         neuron.tree_neuron.annotations.append(f'{args.import_session}: {neuron.neuron_id}')
 
-        print(neuron)
 
-        count -= 1
-        if count < 0:
-            break
+        r = pymaid.upload_neuron(neuron.tree_neuron, import_annotations=True, remote_instance=itanna)
+        # print(neuron)
 
-        work_fd.write("%d\t%d\n" % (neuron.neuron_id, 0))
+        work_fd.write("%d\t%s\t%s\n" % (neuron.neuron_id, r['skeleton_id']))
         work_fd.flush()
 
     work_fd.close()
