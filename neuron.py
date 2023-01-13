@@ -54,7 +54,7 @@ class CompressedNeurons:
                     G.add_edge(h5_edges[edge][0], h5_edges[edge][1])
 
                 #tree_neuron = navis.TreeNeuron(G, units='1 nm')
-                tree_neuron = navis.graph.nx2neuron(G, root=h5_root, break_cycles=True, units='1 nm')
+                tree_neuron = navis.graph.nx2neuron(G, root=h5_root, break_cycles=True, units='1 nm', name=neuron_id)
                 flywire_neuron = FlywireNeuron(neuron_id=neuron_id, tree_neuron=tree_neuron)
 
                 yield flywire_neuron
