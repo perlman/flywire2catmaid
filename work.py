@@ -25,8 +25,11 @@ def main():
         token = args.token
     else:
         token = open("token.txt").read().strip()
+    
+    itanna = pymaid.CatmaidInstance(server='https://spaces.itanna.io', project_id=64, api_token=token, caching=False)
 
-    itanna = pymaid.CatmaidInstance(server='https://spaces.itanna.io', project_id=63, api_token=token, caching=False)
+
+    # itanna = pymaid.CatmaidInstance(server='http://localhost:8080', project_id=64, api_token=token, caching=False)
 
     neurons = CompressedNeurons(args.filename)
 
@@ -58,7 +61,7 @@ def main():
         r = pymaid.upload_neuron(neuron.tree_neuron, import_annotations=True, remote_instance=itanna)
         # print(neuron)
 
-        work_fd.write("%d\t%s\t%s\n" % (neuron.neuron_id, r['skeleton_id']))
+        work_fd.write("%d\t%s\n" % (neuron.neuron_id, r['skeleton_id']))
         work_fd.flush()
 
     work_fd.close()
