@@ -19,6 +19,7 @@ def main():
     parser.add_argument("--filename", default="/Users/eric/nobackup/fafb/526/l2_skeletons/m526_skeletons.zip")
     parser.add_argument("--import-session", default="import")
     parser.add_argument("--workfile", default="work.txt")
+    parser.add_argument("--project_id", type=int, required=True)
     args = parser.parse_args()
 
     if args.token:
@@ -26,7 +27,7 @@ def main():
     else:
         token = open("token.txt").read().strip()
     
-    itanna = pymaid.CatmaidInstance(server='https://spaces.itanna.io', project_id=64, api_token=token, caching=False)
+    itanna = pymaid.CatmaidInstance(server='https://spaces.itanna.io', project_id=args.project_id, api_token=token, caching=False)
 
 
     # itanna = pymaid.CatmaidInstance(server='http://localhost:8080', project_id=64, api_token=token, caching=False)
