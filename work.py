@@ -6,13 +6,6 @@ import os
 
 from neuron import CompressedNeurons
 
-def upload_neuron(neuron):
-    # Upload a neuron to CATMAID
-
-
-    pass
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--token")
@@ -20,6 +13,7 @@ def main():
     parser.add_argument("--import-session", default="import")
     parser.add_argument("--workfile", default="work.txt")
     parser.add_argument("--project_id", type=int, required=True)
+    parser.add_argument("--rootid_meta_annotation", type=str, required=False, default=None, help="Meta annotation to use for root_id annotations")
     args = parser.parse_args()
 
     if args.token:
@@ -54,13 +48,21 @@ def main():
             print(f"Skipping {neuron.neuron_id}")
             continue
 
+
         # Add basic import annotations
         neuron.tree_neuron.annotations = []
-        neuron.tree_neuron.annotations.append(f'{args.import_session}: {neuron.neuron_id}')
+        skel_id_anno = f'{neuron.neuron_id}'
+        neuron.tree_neuron.annotations.append(skel_id_anno)
+
+
 
 
         r = pymaid.upload_neuron(neuron.tree_neuron, import_annotations=True, remote_instance=itanna)
         # print(neuron)
+
+        if args.rootid_meta_annotation:
+            # Add the meta annotation to this new annotation
+            pymaid.add_meta_annotations(to_annotate=skel_id_anno, to_add=args.rootid_meta_annotation, remote_instance=itanna)
 
         work_fd.write("%d\t%s\n" % (neuron.neuron_id, r['skeleton_id']))
         work_fd.flush()
