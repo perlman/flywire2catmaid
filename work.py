@@ -14,6 +14,9 @@ def main():
     parser.add_argument("--workfile", default="work.txt")
     parser.add_argument("--project_id", type=int, required=True)
     parser.add_argument("--rootid_meta_annotation", type=str, required=False, default=None, help="Meta annotation to use for root_id annotations")
+    parser.add_argument("--source_project_id", type=int, default=0)
+    parser.add_argument("--source_url", type=str, "https://flywire.ai/")
+    
     args = parser.parse_args()
 
     if args.token:
@@ -21,7 +24,7 @@ def main():
     else:
         token = open("token.txt").read().strip()
     
-    itanna = pymaid.CatmaidInstance(server='https://spaces.itanna.io', project_id=args.project_id, api_token=token, caching=False)
+    itanna = pymaid.CatmaidInstance(server='https://spaces.catmaid.org', project_id=args.project_id, api_token=token, caching=False)
 
 
     # itanna = pymaid.CatmaidInstance(server='http://localhost:8080', project_id=64, api_token=token, caching=False)
@@ -57,7 +60,11 @@ def main():
 
 
 
-        r = pymaid.upload_neuron(neuron.tree_neuron, import_annotations=True, remote_instance=itanna)
+        r = pymaid.upload_neuron(neuron.tree_neuron, import_annotations=True,
+                                 remote_instance=itanna, source_url=args.source_url,
+                                 source_project_id=args.source_project_id,
+                                 source_id=neuron.neuron_id,
+                                 source_type="segmentation")
         # print(neuron)
 
         if args.rootid_meta_annotation:
