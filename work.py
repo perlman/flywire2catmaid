@@ -15,7 +15,8 @@ def main():
     parser.add_argument("--project_id", type=int, required=True)
     parser.add_argument("--rootid_meta_annotation", type=str, required=False, default=None, help="Meta annotation to use for root_id annotations")
     parser.add_argument("--source_project_id", type=int, default=0)
-    parser.add_argument("--source_url", type=str, "https://flywire.ai/")
+    parser.add_argument("--source_url", default="https://flywire.ai/")
+    parser.add_argument("--meta_annotate_only", default=False, action="store_true", help="Only add meta annotations; don't upload neurons")
     
     args = parser.parse_args()
 
@@ -57,15 +58,15 @@ def main():
         skel_id_anno = f'{neuron.neuron_id}'
         neuron.tree_neuron.annotations.append(skel_id_anno)
 
-
-
-
-        r = pymaid.upload_neuron(neuron.tree_neuron, import_annotations=True,
-                                 remote_instance=itanna, source_url=args.source_url,
+        
+        if not args.meta_annotate_only:
+            r = pymaid.upload_neuron(neuron.tree_neuron, import_annotations=True,
+                                 remote_instance=itanna,
+                                 source_url=args.source_url,
                                  source_project_id=args.source_project_id,
                                  source_id=neuron.neuron_id,
-                                 source_type="segmentation")
-        # print(neuron)
+                                 source_type="segmentation"
+                                 )
 
         if args.rootid_meta_annotation:
             # Add the meta annotation to this new annotation
