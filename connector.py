@@ -4,6 +4,7 @@ import os
 import navis
 import pymaid
 import pandas
+import requests
 
 
 def get_connectors(filename):
@@ -40,7 +41,8 @@ def main():
         token = args.token
     else:
         token = open("token.txt").read().strip()
-    
+
+    pymaid.set_pbars(hide=True)    
     itanna = pymaid.CatmaidInstance(server='https://spaces.catmaid.org', project_id=args.project_id, api_token=token, caching=False)
 
     rootmap = {}
@@ -52,13 +54,13 @@ def main():
 
     data = get_connectors(args.connectorfile)
     for index, row in data.iterrows():
-        print(row)
+        # print(row)
         pre_skel = rootmap.get(row["pre_pt_root_id"], None)
         post_skel = rootmap.get(row["post_pt_root_id"], None)
 
         if pre_skel is None or post_skel is None:
             # TODO: Lookup and cache missing skeletons 
-            print("Skipping %s->%s" % (row["pre_pt_root_id"], row["post_pt_root_id"]))
+            print("Skipping %s->%s (id %d)" % (row["pre_pt_root_id"], row["post_pt_root_id"], row["id"]))
 
         # print(pre_skel, post_skel)
 
@@ -69,9 +71,9 @@ def main():
         if "treenode_id" in pre_node and "treenode_id" in post_node:
             pre_node = pre_node["treenode_id"]
             post_node = post_node["treenode_id"]
-            pass
         else:
-            print("Skipping %s->%s: no treenode_ids found" % (row["pre_pt_root_id"], row["post_pt_root_id"]))
+            print("Skipping %s->%s (id %d): no treenode_ids found" % (row["pre_pt_root_id"], row["post_pt_root_id"], row["id"]))
+            continue
 
         # Use the center point for the connector
         connector_x = (row["pre_pt_position_x"] + row["post_pt_position_x"]) / 2.0
@@ -80,10 +82,14 @@ def main():
 
         connector_id = pymaid.add_connector(coords=[connector_x, connector_y, connector_z], check_existing=True)[0]["connector_id"]
 
-        new_connectors = pymaid.link_connector(
-            [(pre_node, connector_id, 'presynaptic_to'),
-             (post_node, connector_id, 'postsynaptic_to')]
-        )
+        try:
+            new_connectors = pymaid.link_connector(
+                [(pre_node, connector_id, 'presynaptic_to'),
+                (post_node, connector_id, 'postsynaptic_to')]
+            )
+        except requests.exceptions.HTTPError:
+            print("Could not link connector %d" % (row["id"]))
+
 
         if index % 500 == 0:
             print(f'Processing connector {index}...')
