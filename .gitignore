@@ -5,3 +5,4 @@ token.txt
 *.txt
 .DS_store
 .ipynb_checkpoints
+*.zip
