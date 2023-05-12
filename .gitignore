@@ -2,3 +2,6 @@ env
 *.pyc
 __pycache__
 token.txt
+*.txt
+.DS_store
+.ipynb_checkpoints
