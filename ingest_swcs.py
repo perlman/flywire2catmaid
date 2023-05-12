@@ -9,13 +9,15 @@ from neuron import CompressedNeurons
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--token")
-    parser.add_argument("--filename", default="/Users/eric/nobackup/fafb/526/l2_skeletons/m526_skeletons.zip")
+    parser.add_argument("--filename", default="/Users/eric/nobackup/fafb/630/skeletons/sk_lod1_630_healed_ds16.zip")
     parser.add_argument("--import-session", default="import")
     parser.add_argument("--workfile", default="work.txt")
     parser.add_argument("--project_id", type=int, required=True)
     parser.add_argument("--rootid_meta_annotation", type=str, required=False, default=None, help="Meta annotation to use for root_id annotations")
     parser.add_argument("--source_project_id", type=int, default=0)
-    parser.add_argument("--source_url", type=str, "https://flywire.ai/")
+    parser.add_argument("--source_url", type=str, default="https://flywire.ai/")
+    parser.add_argument("--data-type",  choices=['h5', 'swc'], default='swc')
+    parser.add_argument("--dry-run", action="store_true", default=False)
     
     args = parser.parse_args()
 
@@ -29,7 +31,7 @@ def main():
 
     # itanna = pymaid.CatmaidInstance(server='http://localhost:8080', project_id=64, api_token=token, caching=False)
 
-    neurons = CompressedNeurons(args.filename)
+    neurons = CompressedNeurons(args.filename, datatype=args.data_type)
 
     # Read workfile for list of processed neurons
     # Quick & dirty kludge
@@ -59,6 +61,9 @@ def main():
 
 
 
+
+        if args.dry_run:
+            continue
 
         r = pymaid.upload_neuron(neuron.tree_neuron, import_annotations=True,
                                  remote_instance=itanna, source_url=args.source_url,
