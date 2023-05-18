@@ -61,6 +61,8 @@ def main():
         if pre_skel is None or post_skel is None:
             # TODO: Lookup and cache missing skeletons 
             print("Skipping %s->%s (id %d)" % (row["pre_pt_root_id"], row["post_pt_root_id"], row["id"]))
+        else:
+            print("NOT skipping %s->%s (id %d)" % (row["pre_pt_root_id"], row["post_pt_root_id"], row["id"]))
 
         # print(pre_skel, post_skel)
 
@@ -87,9 +89,8 @@ def main():
                 [(pre_node, connector_id, 'presynaptic_to'),
                 (post_node, connector_id, 'postsynaptic_to')]
             )
-        except requests.exceptions.HTTPError:
-            print("Could not link connector %d" % (row["id"]))
-
+        except requests.exceptions.RequestException as err:
+            print("Could not link connector %d [%s]" % (row["id"], type(err)))
 
         if index % 500 == 0:
             print(f'Processing connector {index}...')
