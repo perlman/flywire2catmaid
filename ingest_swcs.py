@@ -19,8 +19,18 @@ def main():
     parser.add_argument("--meta_annotate_only", default=False, action="store_true", help="Only add meta annotations; don't upload neurons")
     parser.add_argument("--data-type",  choices=['h5', 'swc'], default='swc')
     parser.add_argument("--dry-run", action="store_true", default=False)
+    parser.add_argument("--worker", default=None, help="Which worker is this?", type=int)
+    parser.add_argument("--workers", default=None, help="Number of workers for import", type=int)
+    parser.add_argument("--salt", default=18947, type=int)
+
     
     args = parser.parse_args()
+
+    if args.worker is None and args.workers is not None:
+        raise Exception("Worker required when specifying --workers")
+    if args.worker >= args.workers:
+        raise Execption("Worker ID is higher than maximum worker")
+
 
     if args.token:
         token = args.token
@@ -49,6 +59,11 @@ def main():
 
 
     for neuron in neurons.neuron_iter():
+        if args.workers:
+            worker = (neuron.neuron_id // args.salt) % args.workers
+            if worker != args.worker:
+                continue
+
         # Skip if needed?
         if neuron.neuron_id in processed:
             print(f"Skipping {neuron.neuron_id}")
