@@ -60,13 +60,13 @@ def main():
 
         connector_file.write("%d,%d,%d,%d,%d,%d\n" % (
                              connector_id, args.project_id, connector_x, connector_y, connector_z,
-                             args.user_id,
+                             args.user_id, args.user_id,
                              ))
 
     connector_file.close()
 
     print("SQL Command:")
-    print("COPY connector (id, project_id, location_x, location_y, location_z, user_id) FROM '%s WITH (FORMAT csv);" % args.connector_csv)
+    print("COPY connector (id, project_id, location_x, location_y, location_z, editor_id, user_id) FROM '%s' WITH (FORMAT csv);" % args.connector_csv)
 
 
 if __name__ == "__main__":
