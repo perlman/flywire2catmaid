@@ -58,7 +58,7 @@ def main():
         connector_y = (row["pre_pt_position_y"] + row["post_pt_position_y"]) / 2.0
         connector_z = (row["pre_pt_position_z"] + row["post_pt_position_z"]) / 2.0
 
-        connector_file.write("%d,%d,%d,%d,%d,%d\n" % (
+        connector_file.write("%d,%d,%d,%d,%d,%d,%d\n" % (
                              connector_id, args.project_id, connector_x, connector_y, connector_z,
                              args.user_id, args.user_id,
                              ))
