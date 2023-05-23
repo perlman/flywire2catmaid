@@ -4,10 +4,8 @@ WITH import AS (
       1 AS project_id
 ), data AS (
   SELECT *
-  FROM (VALUES
-    (6, 'pre', 10, 108400, 57760, 40),
-    (6, 'post', 10541812, 108400, 57760, 40)
-  ) data(id, type, skeleton_id, x, y, z)
+  FROM connector_treenode_lookup
+  -- data(id, relation_id, skeleton_id, x, y, z)
 ),
 closest_node AS (
   /* Get closest node in skeleton */
@@ -39,4 +37,4 @@ closest_node AS (
   ) closest(id)
     ON TRUE
 )
-SELECT * FROM closest_node;
+SELECT * INTO TEMPORARY connector_treenode_lookup_results FROM closest_node;

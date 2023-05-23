@@ -38,6 +38,7 @@ def main():
     parser.add_argument("--rootmap", help="TSV file mapping root_id to skeleton_id")
     parser.add_argument("--connector_edge_query_csv", default=None, help="Table to load into SQL for finding treenodes")
     parser.add_argument("--base_id", default=400000000, type=int)
+    parser.add_argument("--temp_table_name", default="connector_treenode_lookup")
     args = parser.parse_args()
 
     # 
@@ -52,18 +53,19 @@ def main():
 
     data = get_connectors(args.connectorfile)
     for index, row in data.iterrows():
+        # presynaptic_to has ID 20 and postsynaptic_to has ID 21. I just looked at the table relation: SELECT * FROM relation;
         pre_skel = rootmap.get(row["pre_pt_root_id"], None)
         post_skel = rootmap.get(row["post_pt_root_id"], None)
         # Check pre
         if pre_skel:
-            query1 = (row["id"] + args.base_id, "pre", pre_skel, row["post_pt_position_x"], row["pre_pt_position_y"], row["pre_pt_position_z"])
+            query1 = (row["id"] + args.base_id, 20, pre_skel, row["post_pt_position_x"], row["pre_pt_position_y"], row["pre_pt_position_z"])
         else:
             # Not in set of imported skeletons
             query1 = None
 
         # Check post
         if post_skel:
-            query2 = (row["id"] + args.base_id, "post", post_skel, row["post_pt_position_x"], row["post_pt_position_y"], row["post_pt_position_z"])
+            query2 = (row["id"] + args.base_id, 21, post_skel, row["post_pt_position_x"], row["post_pt_position_y"], row["post_pt_position_z"])
         else:
             # Not in set of imported skeletons
             query2 = None
@@ -72,23 +74,20 @@ def main():
             if data is not None:
                 connector_file.write(','.join(map(str, data)) + '\n')
 
-        continue
-
-        connector_id = args.base_id + row["id"]
-        connector_x = (row["pre_pt_position_x"] + row["post_pt_position_x"]) / 2.0
-        connector_y = (row["pre_pt_position_y"] + row["post_pt_position_y"]) / 2.0
-        connector_z = (row["pre_pt_position_z"] + row["post_pt_position_z"]) / 2.0
-
-        connector_file.write("%d,%d,%d,%d,%d,%d,%d\n" % (
-                             connector_id, args.project_id, connector_x, connector_y, connector_z,
-                             args.user_id, args.user_id,
-                             ))
-
     connector_file.close()
+    print("SQL Command:")
+    print(f"""
+    CREATE TEMPORARY TABLE {args.temp_table_name} (
+        id INT NOT NULL,
+        relation INT NOT NULL,
+        skeleton_id INT  NOT NULL,
+        x real NOT NULL,
+        y real NOT NULL,
+        z real NOT NULL
+);
+    
+        COPY {args.temp_table_name} (id, relation, skeleton_id, x, y, z) FROM '{args.connector_edge_query_csv}' WITH (FORMAT csv);
 
-    print("SQL Command to ingest into temp table:")
-    print()
-    print("COPY #temp_table (id, project_id, location_x, location_y, location_z, editor_id, user_id) FROM '%s' WITH (FORMAT csv);" % args.connector_edge_query_csv)
-
+        """)
 if __name__ == "__main__":
     main()
