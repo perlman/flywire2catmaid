@@ -4,3 +4,4 @@ caveclient
 sea-serpent
 h5py
 httpx
+psycopg2
