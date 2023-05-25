@@ -164,8 +164,13 @@ def main():
     #hemilineage(rootmap=rootmap, datapath=args.datapath)
     #cell_identification(rootmap=rootmap, datapath=args.datapath)
 
+    count = 0
     for (entity_id, anno) in annos:
         post_annotation(session, entity_id, anno, dryrun=args.dry_run)
+
+        count = count + 1
+        if count % 5000 == 0:
+            print(count)
 
 if __name__ == "__main__":
     main()
