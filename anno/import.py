@@ -1,15 +1,29 @@
 # Import annotations
+# Designed to import the data from "flywire_resource_data_files/630"
+# https://drive.google.com/drive/folders/1jvYLNVbLBzccxUbDKFtKzgMdW53kiSOz
 
 import argparse
 import pandas
 import os
 
-# import navis
-# import pymaid
-# import os
+def cell_sub_class_anno(rootmap, datapath):
+    path = os.path.join(datapath, "cell_annotations", "cell_sub_class_anno_630.feather")
+    data = pandas.read_feather(path)
+    for index, row in data.iterrows():
+        skel_id = rootmap[row["root_id"]]
+        anno = "cell_sub_class:%s" % row["cell_sub_class"]
+        print(anno)
+
+def cell_type_anno(rootmap, datapath):
+    path = os.path.join(datapath, "cell_annotations", "cell_type_anno_630.feather")
+    data = pandas.read_feather(path)
+    for index, row in data.iterrows():
+        skel_id = rootmap[row["root_id"]]
+        anno = "cell_type:%s" % row["cell_type"]
+        print(anno)
+
 
 def nerve_anno(rootmap, datapath):
-    # ito_lee_hemilineage hemilineages
     path = os.path.join(datapath, "cell_annotations", "nerve_anno_630.feather")
     data = pandas.read_feather(path)
     for index, row in data.iterrows():
@@ -17,7 +31,6 @@ def nerve_anno(rootmap, datapath):
         anno = "nerve:%s" % row["nerve"]
 
 def coarse_anno(rootmap, datapath):
-    # ito_lee_hemilineage hemilineages
     path = os.path.join(datapath, "cell_annotations", "coarse_anno_630.feather")
     data = pandas.read_feather(path)
     for index, row in data.iterrows():
@@ -27,7 +40,6 @@ def coarse_anno(rootmap, datapath):
         cell_class = row["cell_class"]
 
 def side_anno_inverted(rootmap, datapath):
-    # ito_lee_hemilineage hemilineages
     path = os.path.join(datapath, "cell_annotations", "side_anno_inverted_630.feather")
     data = pandas.read_feather(path)
     for index, row in data.iterrows():
@@ -37,7 +49,6 @@ def side_anno_inverted(rootmap, datapath):
 
 
 def hemibrain_anno(rootmap, datapath):
-    # ito_lee_hemilineage hemilineages
     path = os.path.join(datapath, "cell_annotations", "hemibrain_anno_630.feather")
     data = pandas.read_feather(path)
     for index, row in data.iterrows():
@@ -48,9 +59,6 @@ def hemibrain_anno(rootmap, datapath):
         if row["hemibrain_type"] is not None:
             anno = "hemibrain_type:%s" % row["hemibrain_type"]
             print(anno)
-
-        #print(anno)
-
 
 
 def hemilineage(rootmap, datapath):
@@ -65,7 +73,7 @@ def hemilineage(rootmap, datapath):
                 print(skel_id, anno)
 
 
-def cell_identification (rootmap, datapath):
+def cell_identification(rootmap, datapath):
     # Cell identification table
     # `tag` are freeform...
     # TODO: Actually figure this out
@@ -89,12 +97,14 @@ def main():
             line = line.strip().split(',')
             rootmap[int(line[0])] = int(line[1])
 
-    nerve_anno(rootmap=rootmap, datapath=args.datapath)  
+    #cell_type_anno(rootmap=rootmap, datapath=args.datapath)
+    #cell_sub_class_anno(rootmap=rootmap, datapath=args.datapath)  
+    #nerve_anno(rootmap=rootmap, datapath=args.datapath)  
     #hemibrain_anno(rootmap=rootmap, datapath=args.datapath)  
     #coarse_anno(rootmap=rootmap, datapath=args.datapath)  
     #side_anno_inverted(rootmap=rootmap, datapath=args.datapath)
     #hemilineage(rootmap=rootmap, datapath=args.datapath)
-    # cell_identification(rootmap=rootmap, datapath=args.datapath)
+    #cell_identification(rootmap=rootmap, datapath=args.datapath)
 
 if __name__ == "__main__":
     main()
