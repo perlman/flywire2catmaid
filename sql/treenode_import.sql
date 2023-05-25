@@ -24,3 +24,17 @@ UPDATE pg_index
 SET indisready=true
 FROM indexed_table it
 WHERE indrelid = it.rel;
+
+REINDEX TABLE treenode_connector;
+
+INSERT INTO treenode_connector_edge
+SELECT
+    tc.id,
+    tc.project_id,
+    ST_MakeLine(
+        ST_MakePoint(t.location_x, t.location_y, t.location_z),
+        ST_MakePoint(c.location_x, c.location_y, c.location_z))
+FROM treenode_connector tc, treenode t, connector c
+WHERE t.id = tc.treenode_id
+  AND c.id = tc.connector_id
+  AND tc.project_id = 1;
