@@ -3,3 +3,4 @@ navis
 caveclient
 sea-serpent
 h5py
+httpx

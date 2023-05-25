@@ -5,32 +5,60 @@
 import argparse
 import pandas
 import os
+import httpx
+
+def post_annotation(session, entity, anno, dryrun=False):
+    project_id = 1
+    add_anno_url = f"https://spine.itanna.io/catmaid/flywire-m630/{project_id}/annotations/add"
+
+    postdata = {
+        'entity_ids[0]': entity,
+        'annotations[0]': anno
+    }
+
+    try:
+        if dryrun:
+            print(postdata)
+        else:
+            session.post(add_anno_url, data=postdata)
+    except:
+        raise
+
+
 
 def cell_sub_class_anno(rootmap, datapath):
+    annos = []
     path = os.path.join(datapath, "cell_annotations", "cell_sub_class_anno_630.feather")
     data = pandas.read_feather(path)
     for index, row in data.iterrows():
         skel_id = rootmap[row["root_id"]]
         anno = "cell_sub_class:%s" % row["cell_sub_class"]
-        print(anno)
+        annos.append((skel_id, anno))
+    return annos
 
 def cell_type_anno(rootmap, datapath):
+    annos = []
     path = os.path.join(datapath, "cell_annotations", "cell_type_anno_630.feather")
     data = pandas.read_feather(path)
     for index, row in data.iterrows():
         skel_id = rootmap[row["root_id"]]
         anno = "cell_type:%s" % row["cell_type"]
-        print(anno)
+        annos.append((skel_id, anno))
+    return annos
 
 
 def nerve_anno(rootmap, datapath):
+    annos = []
     path = os.path.join(datapath, "cell_annotations", "nerve_anno_630.feather")
     data = pandas.read_feather(path)
     for index, row in data.iterrows():
         skel_id = rootmap[row["root_id"]]
         anno = "nerve:%s" % row["nerve"]
+        annos.append((skel_id, anno))
+    return annos
 
 def coarse_anno(rootmap, datapath):
+    annos = []
     path = os.path.join(datapath, "cell_annotations", "coarse_anno_630.feather")
     data = pandas.read_feather(path)
     for index, row in data.iterrows():
@@ -38,39 +66,48 @@ def coarse_anno(rootmap, datapath):
         flow = row["flow"]
         super_class = row["super_class"]
         cell_class = row["cell_class"]
+    raise Exception("TODO: Figure out format for these")
+    return annos
 
 def side_anno_inverted(rootmap, datapath):
+    annos = []
     path = os.path.join(datapath, "cell_annotations", "side_anno_inverted_630.feather")
     data = pandas.read_feather(path)
     for index, row in data.iterrows():
         skel_id = rootmap[row["root_id"]]
         anno = "side:%s" % (row["side"])
-        print(anno)
-
+        annos.append((skel_id, anno))
+    return annos
 
 def hemibrain_anno(rootmap, datapath):
+    annos = []
     path = os.path.join(datapath, "cell_annotations", "hemibrain_anno_630.feather")
     data = pandas.read_feather(path)
     for index, row in data.iterrows():
         skel_id = rootmap[row["root_id"]]
         if row["hemibrain_match"] is not None:
             anno = "hemibrain_match:%s" % row["hemibrain_match"]
-            print(anno)
+            annos.append((skel_id, anno))
         if row["hemibrain_type"] is not None:
             anno = "hemibrain_type:%s" % row["hemibrain_type"]
-            print(anno)
+            annos.append((skel_id, anno))
+    return annos
 
 
 def hemilineage(rootmap, datapath):
     # ito_lee_hemilineage hemilineages
+    annos = []
     path = os.path.join(datapath, "cell_annotations", "hemilineage_anno_630.feather")
     data = pandas.read_feather(path)
     for index, row in data.iterrows():
         if row["ito_lee_hemilineage"] is not None:
-            skel_id = rootmap[row["root_id"]]
+            skel_id = rootmap.get(row["root_id"], None)
+            if skel_id is None:
+                continue
             for tag in row["ito_lee_hemilineage"].split('&'):
                 anno = "ito_lee_hemilineage:%s" % tag
-                print(skel_id, anno)
+                annos.append((skel_id, anno))
+    return annos
 
 
 def cell_identification(rootmap, datapath):
@@ -83,19 +120,40 @@ def cell_identification(rootmap, datapath):
     for index, row in data.iterrows():
         # row["pt_root_id"]
         print(row["tag"])
-        pass
+    
+    raise Exception("TODO: Figure out format for these")
+    return annos
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--datapath", default=".", type=str)
     parser.add_argument("--rootmap", type=str, required=True, help="TSV file mapping root_id to skeleton_id")
+    parser.add_argument("--token", type=str, help="CATMAID API token")
+    parser.add_argument("--dry-run", default=False, action="store_true")
     args = parser.parse_args()
+
+    if args.token:
+        if os.path.exists(args.token):
+            # Token is a file
+            with open(args.token) as f:
+                token = f.read().strip()
+        else:
+            # Use passed token
+            token = args.token
+    else:
+        raise Exception("Token not specified")
+
 
     rootmap = {}
     if args.rootmap:
         for line in open(args.rootmap, "r"):
             line = line.strip().split(',')
-            rootmap[int(line[0])] = int(line[1])
+            rootmap[int(line[0])] = int(line[1]) + 1   # +1 to go from skeleton to neuron ID
+
+    headers = {'X-Authorization' : 'Token ' + token}
+    session = httpx.Client(headers=headers) 
+
+    annos = hemilineage(rootmap=rootmap, datapath=args.datapath)
 
     #cell_type_anno(rootmap=rootmap, datapath=args.datapath)
     #cell_sub_class_anno(rootmap=rootmap, datapath=args.datapath)  
@@ -105,6 +163,9 @@ def main():
     #side_anno_inverted(rootmap=rootmap, datapath=args.datapath)
     #hemilineage(rootmap=rootmap, datapath=args.datapath)
     #cell_identification(rootmap=rootmap, datapath=args.datapath)
+
+    for (entity_id, anno) in annos:
+        post_annotation(session, entity_id, anno, dryrun=args.dry_run)
 
 if __name__ == "__main__":
     main()
