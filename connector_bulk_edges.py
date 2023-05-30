@@ -27,7 +27,13 @@ def get_connectors(filename):
     
     return data
 
+def get_clean_connectors(filename):
+    # Use the cleaned up table
+    colnames = ["id", "pre_pt_root_id", "post_pt_root_id", "pre_pt_position_x", "pre_pt_position_y", "pre_pt_position_z", "post_pt_position_x", "post_pt_position_y", "post_pt_position_z"]
+    usecols = colnames
+    data = pandas.read_csv(filename, header=None, names=colnames, usecols=usecols, sep='\t')
 
+    return data
 
 
 def main():
@@ -37,7 +43,8 @@ def main():
     parser.add_argument("connectorfile", help="CSV file with synapses")
     parser.add_argument("--rootmap", help="TSV file mapping root_id to skeleton_id")
     parser.add_argument("--connector_edge_query_csv", default=None, help="Table to load into SQL for finding treenodes")
-    parser.add_argument("--base_id", default=400000000, type=int)
+    #parser.add_argument("--base_id", default=400000000, type=int)
+    parser.add_argument("--base_id", default=0, type=int)
     parser.add_argument("--temp_table_name", default="connector_treenode_lookup")
     args = parser.parse_args()
 
@@ -51,7 +58,8 @@ def main():
 
     connector_file = open(args.connector_edge_query_csv, "w")
 
-    data = get_connectors(args.connectorfile)
+    #data = get_connectors(args.connectorfile)
+    data = get_clean_connectors(args.connectorfile)
     for index, row in data.iterrows():
         # presynaptic_to has ID 20 and postsynaptic_to has ID 21. I just looked at the table relation: SELECT * FROM relation;
         pre_skel = rootmap.get(row["pre_pt_root_id"], None)

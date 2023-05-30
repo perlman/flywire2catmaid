@@ -65,6 +65,9 @@ def main():
     parser.add_argument("--project_id", default=1, type=int)
     args = parser.parse_args()
 
+    if args.worker >= args.workers:
+        raise Exception("Invalid worker count")
+
     try:
         conn = psycopg2.connect("port=5446 dbname='catmaid_flywire_m630' user='catmaid_user' host='localhost' password='IcthamhorAs'")
         print(conn)

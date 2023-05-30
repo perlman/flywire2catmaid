@@ -25,34 +25,39 @@ def get_connectors(filename):
     
     return data
 
+def get_clean_connectors(filename):
+    # Use the cleaned up table
+
+    colnames = ["id", "pre_pt_root_id", "post_pt_root_id", "pre_pt_position_x", "pre_pt_position_y", "pre_pt_position_z", "post_pt_position_x", "post_pt_position_y", "post_pt_position_z"]
+
+    usecols = colnames
+
+    data = pandas.read_csv(filename, header=None,
+                           names=colnames,
+                           usecols=usecols
+                           )
+    
+    return data
+
 
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--token")
+    # parser.add_argument("--token")
     parser.add_argument("--project_id", type=int, required=True)
     parser.add_argument("connectorfile", help="CSV file with synapses")
     parser.add_argument("--rootmap", help="TSV file mapping root_id to skeleton_id")
     args = parser.parse_args()
 
-
-    if args.token:
-        token = args.token
-    else:
-        token = open("token.txt").read().strip()
-
-    pymaid.set_pbars(hide=True)    
-    itanna = pymaid.CatmaidInstance(server='https://spaces.catmaid.org', project_id=args.project_id, api_token=token, caching=False)
-
-    rootmap = {}
     if args.rootmap:
         for line in open(args.rootmap, "r"):
             line = line.strip().split()
             # print(line)
             rootmap[int(line[0])] = int(line[1])
 
-    data = get_connectors(args.connectorfile)
+    #data = get_connectors(args.connectorfile)
+    data = get_clean_connectors(args.connectorfile)
     for index, row in data.iterrows():
         # print(row)
         pre_skel = rootmap.get(row["pre_pt_root_id"], None)

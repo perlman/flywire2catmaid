@@ -27,6 +27,16 @@ def get_connectors(filename):
     
     return data
 
+def get_clean_connectors(filename):
+    # Use the cleaned up table
+    colnames = ["id", "pre_pt_root_id", "post_pt_root_id", "pre_pt_position_x", "pre_pt_position_y", "pre_pt_position_z", "post_pt_position_x", "post_pt_position_y", "post_pt_position_z"]
+    usecols = colnames
+    data = pandas.read_csv(filename, header=None, names=colnames, usecols=usecols, sep='\t')
+
+    return data
+
+
+
 
 
 
@@ -37,45 +47,28 @@ def main():
     parser.add_argument("connectorfile", help="CSV file with synapses")
     parser.add_argument("--rootmap", help="TSV file mapping root_id to skeleton_id")
     parser.add_argument("--connector_csv", default=None, help="CSV file with connectors for incertion into catmaid")
-    parser.add_argument("--base_id", default=400000000, type=int)
+    #parser.add_argument("--base_id", default=400000000, type=int)
+    parser.add_argument("--base_id", default=0, type=int)
     args = parser.parse_args()
 
 
     rootmap = {}
     if args.rootmap:
         for line in open(args.rootmap, "r"):
-            line = line.strip().split()
+            line = line.strip().split(',')
             rootmap[int(line[0])] = int(line[1])
 
     connector_file = open(args.connector_csv, "w")
 
-    data = get_connectors(args.connectorfile)
+    # data = get_connectors(args.connectorfile)
+    data = get_clean_connectors(args.connectorfile)
     for index, row in data.iterrows():
         # Use the center point for the connector
+        connector_id = args.base_id + int(row["id"])
+        connector_x = (int(row["pre_pt_position_x"]) + int(row["post_pt_position_x"])) / 2.0
+        connector_y = (int(row["pre_pt_position_y"]) + int(row["post_pt_position_y"])) / 2.0
+        connector_z = (int(row["pre_pt_position_z"]) + int(row["post_pt_position_z"])) / 2.0
 
-        connector_id = args.base_id + row["id"]
-
-        (x1, y1, z1) = (row["pre_pt_position_x"], row["pre_pt_position_y"] , row["pre_pt_position_z"])
-        (x2, y2, z2) = (row["post_pt_position_x"], row["post_pt_position_y"] , row["post_pt_position_z"])
-
-
-        distance = math.sqrt( (x1-x2) ** 2 +(y1-y2) ** 2 + (z1-z2)**2 )
-
-        print(distance)
-
-        y1 = row["pre_pt_position_y"] 
-        y2 = row["pre_pt_position_z"] 
-        # Do a sanity check on each dimension...
-
-
-
-
-        connector_x = (row["pre_pt_position_x"] + row["post_pt_position_x"]) / 2.0
-        connector_y = (row["pre_pt_position_y"] + row["post_pt_position_y"]) / 2.0
-        connector_z = (row["pre_pt_position_z"] + row["post_pt_position_z"]) / 2.0
-
-
-        continue
         connector_file.write("%d,%d,%d,%d,%d,%d,%d\n" % (
                              connector_id, args.project_id, connector_x, connector_y, connector_z,
                              args.user_id, args.user_id,

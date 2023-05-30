@@ -41,7 +41,9 @@ def cell_type_anno(rootmap, datapath):
     path = os.path.join(datapath, "cell_annotations", "cell_type_anno_630.feather")
     data = pandas.read_feather(path)
     for index, row in data.iterrows():
-        skel_id = rootmap[row["root_id"]]
+        skel_id = rootmap.get(row["root_id"], None)
+        if skel_id is None:
+            continue
         anno = "cell_type:%s" % row["cell_type"]
         annos.append((skel_id, anno))
     return annos
@@ -52,7 +54,9 @@ def nerve_anno(rootmap, datapath):
     path = os.path.join(datapath, "cell_annotations", "nerve_anno_630.feather")
     data = pandas.read_feather(path)
     for index, row in data.iterrows():
-        skel_id = rootmap[row["root_id"]]
+        skel_id = rootmap.get(row["root_id"], None)
+        if skel_id is None:
+            continue
         anno = "nerve:%s" % row["nerve"]
         annos.append((skel_id, anno))
     return annos
@@ -62,6 +66,9 @@ def coarse_anno(rootmap, datapath):
     path = os.path.join(datapath, "cell_annotations", "coarse_anno_630.feather")
     data = pandas.read_feather(path)
     for index, row in data.iterrows():
+        skel_id = rootmap.get(row["root_id"], None)
+        if skel_id is None:
+            continue
         skel_id = rootmap[row["root_id"]]
         flow = row["flow"]
         super_class = row["super_class"]
@@ -74,7 +81,11 @@ def side_anno_inverted(rootmap, datapath):
     path = os.path.join(datapath, "cell_annotations", "side_anno_inverted_630.feather")
     data = pandas.read_feather(path)
     for index, row in data.iterrows():
-        skel_id = rootmap[row["root_id"]]
+        skel_id = rootmap.get(row["root_id"], None)
+        if skel_id is None:
+            continue
+        if row["side"] is None:
+            continue
         anno = "side:%s" % (row["side"])
         annos.append((skel_id, anno))
     return annos
@@ -84,13 +95,16 @@ def hemibrain_anno(rootmap, datapath):
     path = os.path.join(datapath, "cell_annotations", "hemibrain_anno_630.feather")
     data = pandas.read_feather(path)
     for index, row in data.iterrows():
-        skel_id = rootmap[row["root_id"]]
-        if row["hemibrain_match"] is not None:
-            anno = "hemibrain_match:%s" % row["hemibrain_match"]
-            annos.append((skel_id, anno))
+        skel_id = rootmap.get(row["root_id"], None)
+        if skel_id is None:
+            continue
+        #if row["hemibrain_match"] is not None:
+        #    anno = "hemibrain_match:%s" % row["hemibrain_match"]
+        #    annos.append((skel_id, anno))
         if row["hemibrain_type"] is not None:
-            anno = "hemibrain_type:%s" % row["hemibrain_type"]
-            annos.append((skel_id, anno))
+            for tag in row["hemibrain_type"].split(','):
+                anno = "hemibrain_type:%s" % tag
+                annos.append((skel_id, anno))
     return annos
 
 
@@ -153,15 +167,16 @@ def main():
     headers = {'X-Authorization' : 'Token ' + token}
     session = httpx.Client(headers=headers) 
 
-    annos = hemilineage(rootmap=rootmap, datapath=args.datapath)
+    #annos = hemilineage(rootmap=rootmap, datapath=args.datapath)
+    #annos = side_anno_inverted(rootmap=rootmap, datapath=args.datapath)
+    #annos = hemibrain_anno(rootmap=rootmap, datapath=args.datapath)  
+    #annos = nerve_anno(rootmap=rootmap, datapath=args.datapath)  
 
-    #cell_type_anno(rootmap=rootmap, datapath=args.datapath)
+    annos = cell_type_anno(rootmap=rootmap, datapath=args.datapath)
+
     #cell_sub_class_anno(rootmap=rootmap, datapath=args.datapath)  
     #nerve_anno(rootmap=rootmap, datapath=args.datapath)  
-    #hemibrain_anno(rootmap=rootmap, datapath=args.datapath)  
     #coarse_anno(rootmap=rootmap, datapath=args.datapath)  
-    #side_anno_inverted(rootmap=rootmap, datapath=args.datapath)
-    #hemilineage(rootmap=rootmap, datapath=args.datapath)
     #cell_identification(rootmap=rootmap, datapath=args.datapath)
 
     count = 0

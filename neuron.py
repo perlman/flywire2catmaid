@@ -50,7 +50,9 @@ class CompressedNeurons:
         # print(swc_contents)
 
         # tree_neuron = navis.TreeNeuron()
-        tree_neuron = navis.read_swc(swc_contents)
+        tree_neuron = navis.read_swc(swc_contents, read_meta=True)
+        # Set the name to match the FlyWire ID
+        tree_neuron.name = f'{neuron_id}'
 
         flywire_neuron = FlywireNeuron(neuron_id=neuron_id, tree_neuron=tree_neuron)
 

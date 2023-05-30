@@ -79,13 +79,18 @@ def main():
             continue
 
         if not args.meta_annotate_only:
-            r = pymaid.upload_neuron(neuron.tree_neuron, import_annotations=True,
+            try:
+                r = pymaid.upload_neuron(neuron.tree_neuron, import_annotations=True,
                                  remote_instance=itanna,
                                  source_url=args.source_url,
                                  source_project_id=args.source_project_id,
                                  source_id=neuron.neuron_id,
                                  source_type="segmentation"
                                  )
+
+            except:
+                navis.write_swc(neuron.tree_neuron, f'{neuron.neuron_id}.swc')
+                raise
 
         if args.rootid_meta_annotation:
             # Add the meta annotation to this new annotation
