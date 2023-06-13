@@ -31,7 +31,9 @@ def cell_sub_class_anno(rootmap, datapath):
     path = os.path.join(datapath, "cell_annotations", "cell_sub_class_anno_630.feather")
     data = pandas.read_feather(path)
     for index, row in data.iterrows():
-        skel_id = rootmap[row["root_id"]]
+        skel_id = rootmap.get(row["root_id"], None)
+        if skel_id is None:
+            continue
         anno = "cell_sub_class:%s" % row["cell_sub_class"]
         annos.append((skel_id, anno))
     return annos
@@ -167,14 +169,17 @@ def main():
     headers = {'X-Authorization' : 'Token ' + token}
     session = httpx.Client(headers=headers) 
 
+    # Done
     #annos = hemilineage(rootmap=rootmap, datapath=args.datapath)
     #annos = side_anno_inverted(rootmap=rootmap, datapath=args.datapath)
     #annos = hemibrain_anno(rootmap=rootmap, datapath=args.datapath)  
     #annos = nerve_anno(rootmap=rootmap, datapath=args.datapath)  
+    #annos = cell_type_anno(rootmap=rootmap, datapath=args.datapath)
 
-    annos = cell_type_anno(rootmap=rootmap, datapath=args.datapath)
-
-    #cell_sub_class_anno(rootmap=rootmap, datapath=args.datapath)  
+    # Current
+    annos = cell_sub_class_anno(rootmap=rootmap, datapath=args.datapath)  
+    
+    # TODO
     #nerve_anno(rootmap=rootmap, datapath=args.datapath)  
     #coarse_anno(rootmap=rootmap, datapath=args.datapath)  
     #cell_identification(rootmap=rootmap, datapath=args.datapath)
