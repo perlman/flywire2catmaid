@@ -72,10 +72,11 @@ def coarse_anno(rootmap, datapath):
         if skel_id is None:
             continue
         skel_id = rootmap[row["root_id"]]
-        flow = row["flow"]
-        super_class = row["super_class"]
-        cell_class = row["cell_class"]
-    raise Exception("TODO: Figure out format for these")
+        flow = "coarse:flow:%s" % row["flow"]
+        super_class = "coarse:super_class:%s" % row["super_class"]
+        cell_class = "coarse:cell_class:%s" % row["cell_class"]
+        for anno in [flow, super_class, cell_class]:
+            annos.append((skel_id, anno))
     return annos
 
 def side_anno_inverted(rootmap, datapath):
@@ -175,13 +176,12 @@ def main():
     #annos = hemibrain_anno(rootmap=rootmap, datapath=args.datapath)  
     #annos = nerve_anno(rootmap=rootmap, datapath=args.datapath)  
     #annos = cell_type_anno(rootmap=rootmap, datapath=args.datapath)
+    #annos = cell_sub_class_anno(rootmap=rootmap, datapath=args.datapath)  
 
     # Current
-    annos = cell_sub_class_anno(rootmap=rootmap, datapath=args.datapath)  
-    
+    annos = coarse_anno(rootmap=rootmap, datapath=args.datapath)  
+
     # TODO
-    #nerve_anno(rootmap=rootmap, datapath=args.datapath)  
-    #coarse_anno(rootmap=rootmap, datapath=args.datapath)  
     #cell_identification(rootmap=rootmap, datapath=args.datapath)
 
     count = 0
