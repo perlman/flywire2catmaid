@@ -176,10 +176,10 @@ def main():
     #annos = hemibrain_anno(rootmap=rootmap, datapath=args.datapath)  
     #annos = nerve_anno(rootmap=rootmap, datapath=args.datapath)  
     #annos = cell_type_anno(rootmap=rootmap, datapath=args.datapath)
-    #annos = cell_sub_class_anno(rootmap=rootmap, datapath=args.datapath)  
+    #annos = cell_sub_class_anno(rootmap=rootmap, datapath=args.datapath)
+    #annos = coarse_anno(rootmap=rootmap, datapath=args.datapath)  
 
     # Current
-    annos = coarse_anno(rootmap=rootmap, datapath=args.datapath)  
 
     # TODO
     #cell_identification(rootmap=rootmap, datapath=args.datapath)
