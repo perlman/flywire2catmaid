@@ -18,13 +18,29 @@ def post_annotation(session, entity, anno, dryrun=False):
 
     try:
         if dryrun:
-            print(postdata)
+            print("add: ", postdata)
         else:
             session.post(add_anno_url, data=postdata)
     except:
         raise
 
 
+def delete_annotation(session, entity, anno, dryrun=False):
+    project_id = 1
+    add_anno_url = f"https://spine.itanna.io/catmaid/flywire-m630/{project_id}/annotations/remove"
+
+    postdata = {
+        'entity_ids[0]': entity,
+        'annotations[0]': anno
+    }
+
+    try:
+        if dryrun:
+            print("remove: ", postdata)
+        else:
+            session.post(add_anno_url, data=postdata)
+    except:
+        raise
 
 def cell_sub_class_anno(rootmap, datapath):
     annos = []
@@ -147,6 +163,7 @@ def main():
     parser.add_argument("--rootmap", type=str, required=True, help="TSV file mapping root_id to skeleton_id")
     parser.add_argument("--token", type=str, help="CATMAID API token")
     parser.add_argument("--dry-run", default=False, action="store_true")
+    parser.add_argument("--delete", default=False, action="store_true", help="Delete annotations instead of create")
     args = parser.parse_args()
 
     if args.token:
@@ -178,15 +195,27 @@ def main():
     #annos = cell_type_anno(rootmap=rootmap, datapath=args.datapath)
     #annos = cell_sub_class_anno(rootmap=rootmap, datapath=args.datapath)
     #annos = coarse_anno(rootmap=rootmap, datapath=args.datapath)  
+    #annos = coarse_anno(rootmap=rootmap, datapath=args.datapath)  
 
     # Current
+
+    # Delete -- need to readd
+    #annos = hemilineage(rootmap=rootmap, datapath=args.datapath)
+    #annos = cell_sub_class_anno(rootmap=rootmap, datapath=args.datapath)  
+    #annos = hemibrain_anno(rootmap=rootmap, datapath=args.datapath)  
+    annos = cell_type_anno(rootmap=rootmap, datapath=args.datapath)
+
+
 
     # TODO
     #cell_identification(rootmap=rootmap, datapath=args.datapath)
 
     count = 0
     for (entity_id, anno) in annos:
-        post_annotation(session, entity_id, anno, dryrun=args.dry_run)
+        if args.delete:
+            delete_annotation(session, entity_id, anno, dryrun=args.dry_run)
+        else:
+            post_annotation(session, entity_id, anno, dryrun=args.dry_run)
 
         count = count + 1
         if count % 5000 == 0:
