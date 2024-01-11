@@ -9,7 +9,7 @@ import httpx
 
 def post_annotation(session, entity, anno, dryrun=False):
     project_id = 1
-    add_anno_url = f"https://spine.itanna.io/catmaid/flywire-m630/{project_id}/annotations/add"
+    add_anno_url = f"https://m783.fafb-flywire.catmaid.org/{project_id}/annotations/add"
 
     postdata = {
         'entity_ids[0]': entity,
@@ -27,7 +27,7 @@ def post_annotation(session, entity, anno, dryrun=False):
 
 def delete_annotation(session, entity, anno, dryrun=False):
     project_id = 1
-    add_anno_url = f"https://spine.itanna.io/catmaid/flywire-m630/{project_id}/annotations/remove"
+    add_anno_url = f"https://m783.fafb-flywire.catmaid.org/{project_id}/annotations/remove"
 
     postdata = {
         'entity_ids[0]': entity,
@@ -157,6 +157,49 @@ def cell_identification(rootmap, datapath):
     raise Exception("TODO: Figure out format for these")
     return annos
 
+
+def flywire_supplemental(rootmap, srcpath, datapath):
+    # supervoxel_id   root_id pos_x   pos_y   pos_z   soma_x  soma_y  soma_z  nucleus_id
+    # flow    super_class     cell_class      cell_sub_class
+    # cell_type       hemibrain_type  ito_lee_hemilineage     hartenstein_hemilineage morphology_group
+    # top_nt  top_nt_conf     side nerve    vfb_id  fbbt_id status
+
+    x = set()
+    annos = []
+    for filename in ["Supplemental_file1_neuron_annotations.tsv", "Supplemental_file2_non_neuron_annotations.tsv"]:
+        srcfile = os.path.join(srcpath, filename)
+        annot = pandas.read_csv(srcfile, sep="\t", low_memory=False)
+
+
+        for index, row in annot.iterrows():
+            #print(row)
+            skel_id = rootmap.get(row["root_id"], None)
+            if skel_id is None:
+                continue
+
+            ito_lee_hemilineage = row["ito_lee_hemilineage"]
+            if isinstance(ito_lee_hemilineage, str):  # instead of np.nan
+                for tag in ito_lee_hemilineage.split('&'):
+                    anno = "ito_lee_hemilineage:%s" % tag
+                    annos.append((skel_id, anno))
+
+            hemibrain_type = row["hemibrain_type"]
+            if isinstance(hemibrain_type, str): # instead of np.nan
+                for tag in hemibrain_type.split(','):
+                    anno = "hemibrain_type:%s" % tag
+                    annos.append((skel_id, anno))
+
+
+            for flat_field in ["flow", "cell_class", "cell_sub_class", "cell_type", "morphology_group", "hartenstein_hemilineage",
+                    "vfb_id", "fbbt_id", "side"]:
+                field_value = row[flat_field]
+                if isinstance(field_value, str):
+                    anno = "%s:%s" % (flat_field, field_value)
+                annos.append((skel_id, anno))
+
+    return annos
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--datapath", default=".", type=str)
@@ -164,6 +207,7 @@ def main():
     parser.add_argument("--token", type=str, help="CATMAID API token")
     parser.add_argument("--dry-run", default=False, action="store_true")
     parser.add_argument("--delete", default=False, action="store_true", help="Delete annotations instead of create")
+    parser.add_argument("--anno-src-dir", default=".", help="Path to flywire annotation TSV files")
     args = parser.parse_args()
 
     if args.token:
@@ -187,7 +231,11 @@ def main():
     headers = {'X-Authorization' : 'Token ' + token}
     session = httpx.Client(headers=headers) 
 
-    # Done
+    # new
+    annos = flywire_supplemental(rootmap=rootmap, srcpath=args.anno_src_dir, datapath=args.datapath)
+
+
+    # old
     #annos = hemilineage(rootmap=rootmap, datapath=args.datapath)
     #annos = side_anno_inverted(rootmap=rootmap, datapath=args.datapath)
     #annos = hemibrain_anno(rootmap=rootmap, datapath=args.datapath)  
@@ -196,19 +244,14 @@ def main():
     #annos = cell_sub_class_anno(rootmap=rootmap, datapath=args.datapath)
     #annos = coarse_anno(rootmap=rootmap, datapath=args.datapath)  
     #annos = coarse_anno(rootmap=rootmap, datapath=args.datapath)  
-
-    # Current
-
-    # Delete -- need to readd
     #annos = hemilineage(rootmap=rootmap, datapath=args.datapath)
     #annos = cell_sub_class_anno(rootmap=rootmap, datapath=args.datapath)  
     #annos = hemibrain_anno(rootmap=rootmap, datapath=args.datapath)  
-    annos = cell_type_anno(rootmap=rootmap, datapath=args.datapath)
-
-
-
+    #annos = cell_type_anno(rootmap=rootmap, datapath=args.datapath)
     # TODO
     #cell_identification(rootmap=rootmap, datapath=args.datapath)
+
+
 
     count = 0
     for (entity_id, anno) in annos:
