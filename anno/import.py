@@ -189,8 +189,22 @@ def flywire_supplemental(rootmap, srcpath, datapath):
                     anno = "hemibrain_type:%s" % tag
                     annos.append((skel_id, anno))
 
+            morphology_group = row["morphology_group"]
+            if isinstance(morphology_group, str):  # instead of np.nan
+                for tag in morphology_group.split('&'):
+                    anno = "morphology_group:%s" % tag
+                    annos.append((skel_id, anno))
 
-            for flat_field in ["flow", "cell_class", "cell_sub_class", "cell_type", "morphology_group", "hartenstein_hemilineage",
+
+            cell_type = row["cell_type"]
+            if isinstance(cell_type, str):  # instead of np.nan
+                for tag in cell_type.split('&'):
+                    anno = "cell_type:%s" % tag
+                    annos.append((skel_id, anno))
+
+
+
+            for flat_field in ["flow", "cell_class", "cell_sub_class", "hartenstein_hemilineage",
                     "vfb_id", "fbbt_id", "side"]:
                 field_value = row[flat_field]
                 if isinstance(field_value, str):
