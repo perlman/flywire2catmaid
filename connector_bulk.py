@@ -44,9 +44,9 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--user_id", type=int, required=True)
     parser.add_argument("--project_id", type=int, required=True)
-    parser.add_argument("connectorfile", help="CSV file with synapses")
+    parser.add_argument("--connectorfile", help="CSV file with synapses")
     parser.add_argument("--rootmap", help="TSV file mapping root_id to skeleton_id")
-    parser.add_argument("--connector_csv", default=None, help="CSV file with connectors for incertion into catmaid")
+    parser.add_argument("--connector_csv", default=None, help="CSV file with connectors for insertion into catmaid")
     #parser.add_argument("--base_id", default=400000000, type=int)
     parser.add_argument("--base_id", default=0, type=int)
     args = parser.parse_args()
@@ -63,6 +63,10 @@ def main():
     # data = get_connectors(args.connectorfile)
     data = get_clean_connectors(args.connectorfile)
     for index, row in data.iterrows():
+        # Filter out synpases where neither neuron is in the neuron set
+        if int(row["pre_pt_root_id"]) not in rootmap and int(row["post_pt_root_id"]) not in rootmap:
+            continue
+
         # Use the center point for the connector
         connector_id = args.base_id + int(row["id"])
         connector_x = (int(row["pre_pt_position_x"]) + int(row["post_pt_position_x"])) / 2.0
