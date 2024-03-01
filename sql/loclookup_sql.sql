@@ -1,10 +1,10 @@
 WITH import AS (
     SELECT
-     21 AS user_id,
+     3 AS user_id,
       1 AS project_id
 ), data AS (
   SELECT *
-  FROM eric_connector_treenode_lookup LIMIT 5000
+  FROM connector_treenode_lookup --LIMIT 5000
   -- data(id, relation_id, skeleton_id, x, y, z)
 ),
 closest_node AS (
@@ -38,4 +38,4 @@ closest_node AS (
     ON TRUE
 )
 -- SELECT * INTO TEMPORARY connector_treenode_lookup_results FROM closest_node;
-SELECT * INTO TEMPORARY eric_connector_treenode_lookup_results FROM closest_node;
+SELECT * INTO connector_treenode_lookup_results FROM closest_node;

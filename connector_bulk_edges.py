@@ -4,19 +4,46 @@
 import argparse
 import os
 
-import navis
 import pandas
 import requests
 
 
+#def get_connectors(filename):
+#    # Use pandas to read connectors file
+#    colnames = ["id", "pre_pt_supervoxel_id", "pre_pt_root_id", "post_pt_supervoxel_id", "post_pt_root_id", "connection_score", "cleft_score",
+#                "gaba", "ach", "glut", "oct", "ser", "da",
+#                "compartment",
+#                "pre_pt_position_x", "pre_pt_position_y", "pre_pt_position_z",
+#                "post_pt_position_x", "post_pt_position_y", "post_pt_position_z"
+#                ]
+#    usecols = ["id", "pre_pt_supervoxel_id", "pre_pt_root_id", "post_pt_supervoxel_id", "post_pt_root_id",
+#                                    "pre_pt_position_x", "pre_pt_position_y", "pre_pt_position_z",
+#                                     "post_pt_position_x", "post_pt_position_y", "post_pt_position_z"]
+#    data = pandas.read_csv(filename, header=None,
+#                           names=colnames,
+#                           usecols=usecols
+#                           )
+#    
+#    return data
+
 def get_connectors(filename):
     # Use pandas to read connectors file
-    colnames = ["id", "pre_pt_supervoxel_id", "pre_pt_root_id", "post_pt_supervoxel_id", "post_pt_root_id", "connection_score", "cleft_score",
-                "gaba", "ach", "glut", "oct", "ser", "da",
-                "compartment",
-                "pre_pt_position_x", "pre_pt_position_y", "pre_pt_position_z",
-                "post_pt_position_x", "post_pt_position_y", "post_pt_position_z"
-                ]
+    # For the flywire 783 Feb 2024 dump
+    colnames = ["id",
+            "pre_pt_root_id","post_pt_root_id",
+            "connection_score","cleft_score","gaba","ach","glut","oct","ser","da",
+            "pre_pt_supervoxel_id","post_pt_supervoxel_id",
+            "neuropil",
+            "post_pt_position_x","post_pt_position_y","post_pt_position_z",
+            "pre_pt_position_x","pre_pt_position_y","pre_pt_position_z"]
+
+
+    #colnames = ["id", "pre_pt_supervoxel_id", "pre_pt_root_id", "post_pt_supervoxel_id", "post_pt_root_id", "connection_score", "cleft_score",
+                #"gaba", "ach", "glut", "oct", "ser", "da",
+                #"compartment",
+                #"pre_pt_position_x", "pre_pt_position_y", "pre_pt_position_z",
+                #"post_pt_position_x", "post_pt_position_y", "post_pt_position_z"
+                #]
     usecols = ["id", "pre_pt_supervoxel_id", "pre_pt_root_id", "post_pt_supervoxel_id", "post_pt_root_id",
                                     "pre_pt_position_x", "pre_pt_position_y", "pre_pt_position_z",
                                      "post_pt_position_x", "post_pt_position_y", "post_pt_position_z"]
@@ -24,8 +51,9 @@ def get_connectors(filename):
                            names=colnames,
                            usecols=usecols
                            )
-    
+
     return data
+
 
 def get_clean_connectors(filename):
     # Use the cleaned up table
@@ -40,7 +68,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--user_id", type=int, required=True)
     parser.add_argument("--project_id", type=int, required=True)
-    parser.add_argument("connectorfile", help="CSV file with synapses")
+    parser.add_argument("--connectorfile", help="CSV file with synapses")
     parser.add_argument("--rootmap", help="TSV file mapping root_id to skeleton_id")
     parser.add_argument("--connector_edge_query_csv", default=None, help="Table to load into SQL for finding treenodes")
     #parser.add_argument("--base_id", default=400000000, type=int)
@@ -58,8 +86,8 @@ def main():
 
     connector_file = open(args.connector_edge_query_csv, "w")
 
-    #data = get_connectors(args.connectorfile)
-    data = get_clean_connectors(args.connectorfile)
+    data = get_connectors(args.connectorfile)
+    #data = get_clean_connectors(args.connectorfile)
     for index, row in data.iterrows():
         # presynaptic_to has ID 20 and postsynaptic_to has ID 21. I just looked at the table relation: SELECT * FROM relation;
         pre_skel = rootmap.get(row["pre_pt_root_id"], None)

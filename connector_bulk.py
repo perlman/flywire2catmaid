@@ -11,12 +11,22 @@ import math
 
 def get_connectors(filename):
     # Use pandas to read connectors file
-    colnames = ["id", "pre_pt_supervoxel_id", "pre_pt_root_id", "post_pt_supervoxel_id", "post_pt_root_id", "connection_score", "cleft_score",
-                "gaba", "ach", "glut", "oct", "ser", "da",
-                "compartment",
-                "pre_pt_position_x", "pre_pt_position_y", "pre_pt_position_z",
-                "post_pt_position_x", "post_pt_position_y", "post_pt_position_z"
-                ]
+    # For the flywire 783 Feb 2024 dump
+    colnames = ["id",
+            "pre_pt_root_id","post_pt_root_id",
+            "connection_score","cleft_score","gaba","ach","glut","oct","ser","da",
+            "pre_pt_supervoxel_id","post_pt_supervoxel_id",
+            "neuropil",
+            "post_pt_position_x","post_pt_position_y","post_pt_position_z",
+            "pre_pt_position_x","pre_pt_position_y","pre_pt_position_z"]
+
+
+    #colnames = ["id", "pre_pt_supervoxel_id", "pre_pt_root_id", "post_pt_supervoxel_id", "post_pt_root_id", "connection_score", "cleft_score",
+                #"gaba", "ach", "glut", "oct", "ser", "da",
+                #"compartment",
+                #"pre_pt_position_x", "pre_pt_position_y", "pre_pt_position_z",
+                #"post_pt_position_x", "post_pt_position_y", "post_pt_position_z"
+                #]
     usecols = ["id", "pre_pt_supervoxel_id", "pre_pt_root_id", "post_pt_supervoxel_id", "post_pt_root_id",
                                     "pre_pt_position_x", "pre_pt_position_y", "pre_pt_position_z",
                                      "post_pt_position_x", "post_pt_position_y", "post_pt_position_z"]
@@ -60,8 +70,8 @@ def main():
 
     connector_file = open(args.connector_csv, "w")
 
-    # data = get_connectors(args.connectorfile)
-    data = get_clean_connectors(args.connectorfile)
+    data = get_connectors(args.connectorfile)
+    # data = get_clean_connectors(args.connectorfile)
     for index, row in data.iterrows():
         # Filter out synpases where neither neuron is in the neuron set
         if int(row["pre_pt_root_id"]) not in rootmap and int(row["post_pt_root_id"]) not in rootmap:
